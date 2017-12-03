@@ -51,7 +51,8 @@ namespace
 
     constexpr uint8_t OLED_HORIZONTAL_ADDRESSING_MODE{0x00};
     constexpr uint8_t OLED_VERTICAL_ADDRESSING_MODE{0x01};
-    constexpr uint8_t OLED_PAGE_ADDRESSING_MODE{0x02};
+//    constexpr uint8_t OLED_PAGE_ADDRESSING_MODE{0x02};
+    constexpr uint8_t OLED_PAGE_ADDRESSING_MODE{0x00}; // Based on Adafruit python library
 
     // commands
 
@@ -395,68 +396,35 @@ SSD1306::OledI2C::fillWith(
 void
 SSD1306::OledI2C::init() const
 {
-    // Enable charge pump regulator - 8Dh, 14h
-
-    sendCommand(OLED_ENABLE_CHARGE_PUMP_REGULATOR, 0x14);
-
-    // Set Memory Addressing Mode - 20h, 00h
-
-    sendCommand(OLED_SET_MEMORY_ADDRESSING_MODE, OLED_PAGE_ADDRESSING_MODE);
-
-    // Set Osc Frequency D5h, 80h
-
+    // Turn off Display - AEh
+    sendCommand(OLED_SET_DISPLAY_OFF);
+    // Set clock divider - D5h
     sendCommand(OLED_SET_OSC_FREQUENCY, 0x80);
-
-    // Set Display Offset - D3h, 00h
-
+    // Set Multiplex value - A8h
+    sendCommand(OLED_SET_MUX_RATIO, 0x1F);
+    // Set Display Offset - D3h
     sendCommand(OLED_SET_DISPLAY_OFFSET, 0x00);
-
     // Set Display Start Line - 40h
-
     sendCommand(OLED_SET_DISPLAY_START_LINE_MASK | 0x00);
-
+    // Enable charge pump regulator - 8Dh, 10h (diff from orig based on work by Adafruit python library)
+    sendCommand(OLED_ENABLE_CHARGE_PUMP_REGULATOR, 0x14);
+    // Set Memory Addressing Mode - 20h, 00h
+    sendCommand(OLED_SET_MEMORY_ADDRESSING_MODE, OLED_PAGE_ADDRESSING_MODE);
     // Set Segment re-map - A0h/A1h
-
-    sendCommand(OLED_SET_SEGMENT_REMAP_127);
-
+    sendCommand(OLED_SET_SEGMENT_REMAP_0 | 0x01); // Based on Adafruit python library
     // Set COM Output Scan Direction - C0, C8h
-
     sendCommand(OLED_SET_COM_OUTPUT_SCAN_DIRECTION_REMAP);
-
     // Set COM Pins hardware configuration - DAh, 12h
-
-    sendCommand(OLED_SET_COM_PINS_HARDWARE_CONFIGURATION, 0x12);
-
-    // Set Pre-charge Period D9h, F1h
-
-    sendCommand(OLED_SET_PRECHARGE_PERIOD, 0xF1);
-
-    // Set Vcomh Deselect Level - DBh, 40h
-
-    sendCommand(OLED_SET_VCOMH_DESELECT_LEVEL, 0x40);
-
-    // Disable Entire Display On - A4h
-
-    sendCommand(OLED_SET_ENTIRE_DISPLAY_ON_RESUME);
-
-    // Set Normal Display - A6h
-
-    sendCommand(OLED_SET_NORMAL_DISPLAY);
-
-    // Set Column Address - 21h, 00h, 7Fh
-
-    sendCommand(OLED_SET_COLUMN_ADDRESS, 0x00, 0x7F);
-
-    // Set Page Address - 22h, 00h, 07h
-
-    sendCommand(OLED_SET_PAGE_ADDRESS, 0x00, 0x07);
-
+    sendCommand(OLED_SET_COM_PINS_HARDWARE_CONFIGURATION, 0x02);
     // Set Contrast Control - 81h, 7Fh
-
-    sendCommand(OLED_SET_CONTRAST, 0x7F);
-
+    sendCommand(OLED_SET_CONTRAST, 0x8F);
+    // Set Pre-charge Period D9h, F1h
+    sendCommand(OLED_SET_PRECHARGE_PERIOD, 0xF1);
+    // Set Vcomh Deselect Level - DBh, 40h
+    sendCommand(OLED_SET_VCOMH_DESELECT_LEVEL, 0x40);
+    // Disable Entire Display On - A4h
+    sendCommand(OLED_SET_ENTIRE_DISPLAY_ON_RESUME);
     // Display On - AFh
-
     sendCommand(OLED_SET_DISPLAY_ON);
 
     usleep(100000);
